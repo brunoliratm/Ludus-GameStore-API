@@ -1,4 +1,4 @@
-package com.ludus.model;
+package com.ludus.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,9 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class Games {
+public class GamesModel {
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 100)
     private String nome;
@@ -24,16 +24,15 @@ public class Games {
     @Column(length = 10)
     private Float preco;
 
-    public Games() {
+    public GamesModel() {
     }
 
-    public Games(String nome, String genero, int anoLancamento, String plataforma, Float preco) {
+    public GamesModel(String nome, String genero, int anoLancamento, String plataforma, Float preco) {
         this.nome = nome;
         this.genero = genero;
         this.anoLancamento = anoLancamento;
         this.plataforma = plataforma;
         this.preco = preco;
     }
-
 
 }

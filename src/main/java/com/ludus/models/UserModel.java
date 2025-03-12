@@ -1,11 +1,11 @@
-package com.ludus.model;
+package com.ludus.models;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -13,14 +13,14 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Entity
-public class User implements Serializable {
+public class UserModel implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
     @Id
     @Column(length = 11)
     private String cpf;
-    
+
     @Column(length = 100)
     private String email;
 
@@ -30,17 +30,13 @@ public class User implements Serializable {
     @Column(length = 30)
     private String senha;
 
-    @Column(length = 11)
-    private String telefone;
-
-    public User() {
+    public UserModel() {
     }
 
-    public User(String nome, String senha, String cpf, String email, String telefone) {
+    public UserModel(String nome, String senha, String cpf, String email) {
         this.nome = nome;
         this.senha = senha;
-        this.telefone = telefone;
         this.email = email;
         this.cpf = cpf;
-        }
+    }
 }
