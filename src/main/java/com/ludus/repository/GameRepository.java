@@ -1,5 +1,8 @@
 package com.ludus.repository;
 
-public class GameRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.ludus.models.GameModel;
+
+public interface GameRepository extends JpaRepository<GameModel, Long> {
 
 }
