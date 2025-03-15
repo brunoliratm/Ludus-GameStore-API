@@ -1,6 +1,10 @@
 package com.ludus.models;
 
 import java.math.BigDecimal;
+
+import com.ludus.enums.GameGenre;
+import com.ludus.enums.GamePlatform;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,27 +16,18 @@ public class GameModel {
     private Long id;
 
     @Column(length = 100)
-    private String nome;
+    private String name;
 
-    @Column(length = 30)
-    private String genero;
+    @Column(nullable = false ,length = 30)
+    @Enumerated(EnumType.STRING)
+    private GameGenre genre;
 
-    private int anoLancamento;
+    private int releaseYear;
 
-    @Column(length = 30)
-    private String plataforma;
+    @Column(nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
+    private GamePlatform platform;
 
-    private BigDecimal preco;
-
-    public GameModel() {
-    }
-
-    public GameModel(String nome, String genero, int anoLancamento, String plataforma, BigDecimal preco) {
-        this.nome = nome;
-        this.genero = genero;
-        this.anoLancamento = anoLancamento;
-        this.plataforma = plataforma;
-        this.preco = preco;
-    }
+    private BigDecimal price;
 
 }
