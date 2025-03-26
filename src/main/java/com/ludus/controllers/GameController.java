@@ -42,13 +42,15 @@ public class GameController {
 
   @Operation(summary = "Update an Existing Game")
   @PutMapping("/{id}")
-  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDTO gameDTO) {
+  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDTO gameDTO, BindingResult bindingResult) {
+    gameService.updateGame(id, gameDTO, bindingResult);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @Operation(summary = "Delete an Existing Game")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
+    gameService.deleteGame(id);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
