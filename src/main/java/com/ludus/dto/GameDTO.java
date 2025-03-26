@@ -6,9 +6,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 public record GameDTO(
-  
-  Long id,
-
   @NotBlank(message = "name.NotBlank")
   @Size(min = 3, max = 100, message = "nome.Size")
   String name,
