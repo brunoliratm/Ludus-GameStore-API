@@ -2,10 +2,12 @@ package com.ludus.controllers;
 
 import java.util.List;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import com.ludus.dto.GameDTO;
 import com.ludus.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -33,13 +35,14 @@ public class GameController {
 
   @Operation(summary = "Create a New Game")
   @PostMapping()
-  public ResponseEntity<Void> createGame(@RequestBody GameDTO gameDTO) {
+  public ResponseEntity<Void> createGame(@RequestBody @Valid GameDTO gameDTO, BindingResult bindingResult) {
+    gameService.createGame(gameDTO, bindingResult);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @Operation(summary = "Update an Existing Game")
   @PutMapping("/{id}")
-  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody GameDTO gameDTO) {
+  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDTO gameDTO) {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
