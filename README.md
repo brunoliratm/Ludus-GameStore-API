@@ -82,15 +82,15 @@ The API provides the following main endpoints:
 
 - **Users**
   - `POST /api/users`: Register a new user
-  - `GET /api/users/{cpf}`: Get user by CPF
-  - `PUT /api/users/{cpf}`: Update user information
-  - `DELETE /api/users/{cpf}`: Delete user
+  - `GET /api/users/{id}`: Get user by Id
+  - `PUT /api/users/{id}`: Update user information
+  - `DELETE /api/users/{id}`: Delete user
 
 - **Purchases**
   - `GET /api/purchases`: Get all purchases
   - `GET /api/purchases/{id}`: Get purchase by ID
   - `POST /api/purchases`: Create a new purchase
-  - `GET /api/purchases/user/{cpf}`: Get purchases by user
+  - `GET /api/purchases/user/{id}`: Get purchases by user
 
 ## 🔧 Technologies
 
