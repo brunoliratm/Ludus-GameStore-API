@@ -1,5 +1,6 @@
 package com.ludus.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -8,14 +9,14 @@ public record UserDTO(
   @Size(min = 11, max = 11, message = "CPF must have 11 characters")
   String cpf,
   @NotBlank(message = "email.NotBlank")
-  @Size(min = 5, max = 100, message = "email.Email")
+  @Email(message = "email.Email")
   String email,
   @NotBlank(message = "nome.NotBlank")
   @Size(min = 5, max = 100, message = "nome.Size")
-  String nome,
+  String name,
   @NotBlank(message = "senha.NotBlank")
   @Size(min = 5, max = 30, message = "senha.Size")
-  String senha
+  String password
 ) {
   
 

@@ -16,6 +16,8 @@ public class UserModel implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    private int active = 1;
+    
     @Column(nullable = false, length = 11)
     private String cpf;
 

@@ -7,4 +7,6 @@ import com.ludus.models.UserModel;
 @Repository
 public interface UserRepository extends JpaRepository<UserModel, Long> {
     UserModel findByEmail(String email);
+
+    UserModel findByCpf(String cpf);
 }
