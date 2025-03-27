@@ -12,6 +12,7 @@ import com.ludus.dto.GameDTO;
 import com.ludus.enums.GameGenre;
 import com.ludus.enums.GamePlatform;
 import com.ludus.exceptions.NotFoundException;
+import com.ludus.exceptions.RetrievalException;
 import com.ludus.exceptions.InvalidIdException;
 import com.ludus.exceptions.ValidationException;
 import com.ludus.models.GameModel;
@@ -19,17 +20,16 @@ import com.ludus.repository.GameRepository;
 
 @Service
 public class GameService {
-
+  
   @Autowired
   private GameRepository gameRepository;
 
-  public List<GameDTO> getGames() {
+  public List<GameDTO> getAllGames() {
     try {
       List<GameModel> gameModels = gameRepository.findAll();
       return gameModels.stream().map(this::convertToDTO).collect(Collectors.toList());
     } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException("Error retrieving games", e);
+      throw new RetrievalException("Error retrieving games");
     }
   }
 
