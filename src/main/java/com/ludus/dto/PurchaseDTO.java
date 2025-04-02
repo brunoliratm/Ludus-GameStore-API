@@ -19,8 +19,8 @@ public record PurchaseDTO(
     @PastOrPresent(message = "purchase.date.invalid")
     LocalDateTime purchaseDate,
     
-    @NotNull(message = "preco.NotNull")
-    @Min(value = 0, message = "preco.Min")
+    @NotNull(message = "price.NotNull")
+    @Min(value = 0, message = "price.Min")
     BigDecimal price,
     
     @NotBlank(message = "purchase.invalid.payment.method")
