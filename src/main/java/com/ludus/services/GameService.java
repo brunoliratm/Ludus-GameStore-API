@@ -3,8 +3,10 @@ package com.ludus.services;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -23,13 +25,16 @@ public class GameService {
   
   @Autowired
   private GameRepository gameRepository;
+  
+  @Autowired
+  private MessageSource messageSource;
 
   public List<GameDTO> getAllGames() {
     try {
       List<GameModel> gameModels = gameRepository.findAll();
       return gameModels.stream().map(this::convertToDTO).collect(Collectors.toList());
     } catch (Exception e) {
-      throw new RetrievalException("Error retrieving games");
+      throw new RetrievalException(messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
     }
   }
 
@@ -37,10 +42,11 @@ public class GameService {
     if (id == null || id < 1)
       throw new InvalidIdException();
     try {
-      GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException());
+      GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
+          messageSource.getMessage("game.not.found", new Object[]{id}, Locale.getDefault())));
       return convertToDTO(gameModel);
     } catch (NotFoundException e) {
-      throw new NotFoundException("Game not found");
+      throw new NotFoundException(messageSource.getMessage("game.not.found", new Object[]{id}, Locale.getDefault()));
     } catch (Exception e) {
       throw new InvalidIdException();
     }
@@ -49,14 +55,17 @@ public class GameService {
   public void createGame(GameDTO gameDTO, BindingResult bindingResult) {
     validateFields(gameDTO, bindingResult);
 
-    GameModel gameModel = new GameModel();
-    gameModel.setName(gameDTO.name());
-    gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
-    gameModel.setReleaseYear(gameDTO.releaseYear());
-    gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
-    gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
-    gameRepository.save(gameModel);
-
+    try {
+      GameModel gameModel = new GameModel();
+      gameModel.setName(gameDTO.name());
+      gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
+      gameModel.setReleaseYear(gameDTO.releaseYear());
+      gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
+      gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
+      gameRepository.save(gameModel);
+    } catch (Exception e) {
+      throw new RetrievalException(messageSource.getMessage("game.creation.error", null, Locale.getDefault()));
+    }
   }
 
   public void updateGame(Long id, GameDTO gameDTO, BindingResult bindingResult) {
@@ -64,22 +73,35 @@ public class GameService {
       throw new InvalidIdException();
     validateFields(gameDTO, bindingResult);
 
-    GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException());
-    gameModel.setName(gameDTO.name());
-    gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
-    gameModel.setReleaseYear(gameDTO.releaseYear());
-    gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
-    gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
-    gameRepository.save(gameModel);
+    try {
+      GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
+          messageSource.getMessage("game.not.found", new Object[]{id}, Locale.getDefault())));
+      gameModel.setName(gameDTO.name());
+      gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
+      gameModel.setReleaseYear(gameDTO.releaseYear());
+      gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
+      gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
+      gameRepository.save(gameModel);
+    } catch (NotFoundException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RetrievalException(messageSource.getMessage("game.update.error", null, Locale.getDefault()));
+    }
   }
 
   public void deleteGame(Long id) {
     if (id == null || id < 1)
       throw new InvalidIdException();
-    GameModel gameModel =
-        gameRepository.findById(id).orElseThrow(() -> new NotFoundException("Game not found"));
-
-    gameRepository.delete(gameModel);
+      
+    try {
+      GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
+          messageSource.getMessage("game.not.found", new Object[]{id}, Locale.getDefault())));
+      gameRepository.delete(gameModel);
+    } catch (NotFoundException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RetrievalException(messageSource.getMessage("game.deletion.error", null, Locale.getDefault()));
+    }
   }
 
   private GameDTO convertToDTO(GameModel gameModel) {
@@ -100,7 +122,7 @@ public class GameService {
       try {
         GameGenre.valueOf(gamedto.genre().toUpperCase().trim());
       } catch (IllegalArgumentException e) {
-        errors.add("Invalid genre");
+        errors.add(messageSource.getMessage("invalid.genre", null, Locale.getDefault()));
       }
     }
 
@@ -108,7 +130,7 @@ public class GameService {
       try {
         GamePlatform.valueOf(gamedto.platform().toUpperCase().trim());
       } catch (IllegalArgumentException e) {
-        errors.add("Invalid platform");
+        errors.add(messageSource.getMessage("invalid.platform", null, Locale.getDefault()));
       }
     }
 
@@ -116,5 +138,4 @@ public class GameService {
       throw new ValidationException(errors);
     }
   }
-
 }
