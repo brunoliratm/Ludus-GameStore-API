@@ -22,8 +22,8 @@ public record GameDTO(
   @Size(min = 3, max = 30, message = "plataforma.Size")
   String platform,
   
-  @NotNull(message = "preco.NotNull")
-  @Min(value = 0, message = "preco.Min")
+  @NotNull(message = "price.NotNull")
+  @Min(value = 0, message = "price.Min")
   Float price
 ) {
 

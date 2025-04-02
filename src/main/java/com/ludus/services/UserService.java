@@ -2,8 +2,10 @@ package com.ludus.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -20,6 +22,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private MessageSource messageSource;
 
     public List<UserDTO> getAllUsers() {
         try {
@@ -27,21 +32,23 @@ public class UserService {
             return userModels.stream().filter(user -> user.getActive() == 1).map(this::convertToDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            throw new RetrievalException("Error retrieving users");
+            throw new RetrievalException(messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
         }
     }
 
     public UserDTO getUserById(Long id) {
         try {
             UserModel userModel = userRepository.findById(id)
-                    .orElseThrow(() -> new RetrievalException("User not found with id: " + id));
+                    .orElseThrow(() -> new RetrievalException(messageSource.getMessage("user.not.found", 
+                            new Object[]{id}, Locale.getDefault())));
 
             if (userModel.getActive() == 0) {
-                throw new NotFoundException("User not found with id: " + id);
+                throw new NotFoundException(messageSource.getMessage("user.not.found", 
+                        new Object[]{id}, Locale.getDefault()));
             }
             return convertToDTO(userModel);
         } catch (Exception e) {
-            throw new RetrievalException("Error retrieving user by id: " + id);
+            throw new RetrievalException(messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
         }
     }
 
@@ -56,7 +63,7 @@ public class UserService {
             userModel.setPassword(userDTO.password());
             userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException("Error creating user");
+            throw new RetrievalException(messageSource.getMessage("user.creation.error", null, Locale.getDefault()));
         }
     }
 
@@ -65,7 +72,8 @@ public class UserService {
             throw new InvalidIdException();
 
         UserModel userModel = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
+                        new Object[]{id}, Locale.getDefault())));
 
         validateFields(userDTO, bindingResult, id);
 
@@ -84,7 +92,7 @@ public class UserService {
             }
             userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException("Error updating user");
+            throw new RetrievalException(messageSource.getMessage("user.update.error", null, Locale.getDefault()));
         }
     }
 
@@ -93,19 +101,19 @@ public class UserService {
             throw new InvalidIdException();
 
         UserModel userModel = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
+                        new Object[]{id}, Locale.getDefault())));
 
         try {
             userModel.setActive(0);
             userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException("Error deleting user");
+            throw new RetrievalException(messageSource.getMessage("user.deletion.error", null, Locale.getDefault()));
         }
     }
 
     private UserDTO convertToDTO(UserModel userModel) {
-        return new UserDTO(userModel.getCpf(), userModel.getEmail(), userModel.getName(),
-                userModel.getPassword());
+        return new UserDTO(userModel.getCpf(), userModel.getEmail(), userModel.getName(), null);
     }
 
     public void validateFields(UserDTO userDTO, BindingResult bindingResult, Long userId) {
@@ -114,12 +122,12 @@ public class UserService {
 
         UserModel findByCpf = userRepository.findByCpf(userDTO.cpf());
         if (findByCpf != null && (userId == null || !findByCpf.getId().equals(userId))) {
-            errors.add("CPF already registered");
+            errors.add(messageSource.getMessage("cpf.already.exists", null, Locale.getDefault()));
         }
 
         UserModel findByEmail = userRepository.findByEmail(userDTO.email());
         if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
-            errors.add("Email already registered");
+            errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
 
         if (bindingResult.hasErrors()) {

@@ -1,5 +1,6 @@
 package com.ludus.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.ludus.enums.PaymentMethod;
 import jakarta.persistence.Column;
@@ -32,11 +33,14 @@ public class PurchaseModel {
   private GameModel game;
 
   @ManyToOne
-  @JoinColumn(name = "user_cpf")
+  @JoinColumn(name = "user_id")
   private UserModel user;
 
   @Column(nullable = false)
   private LocalDateTime purchaseDate;
+
+  @Column(nullable = false)
+  private BigDecimal price;
 
   @Column(nullable = false, length = 20)
   @Enumerated(EnumType.STRING)
