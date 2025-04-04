@@ -18,7 +18,7 @@ public class SwaggerConfig {
                         .description("API para gerenciamento da loja de jogos Ludus")
                         .version("2.0.0")
                         .contact(new Contact()
-                                .name("Ludus Team")
+                                .name("Github")
                                 .url("https://github.com/brunoliratm/Ludus-GameStore-Api"))
                         .license(new License()
                                 .name("MIT License")
