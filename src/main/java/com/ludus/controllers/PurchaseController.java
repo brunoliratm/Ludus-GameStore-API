@@ -29,10 +29,10 @@ public class PurchaseController {
   public ResponseEntity<ApiDtoResponse<PurchaseDtoResponse>> getPurchases(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(required = false) Long gameId,
-      @RequestParam(required = false) String PaymentMethod
+      @RequestParam(required = false) String paymentMethod
   ) {
     ApiDtoResponse<PurchaseDtoResponse> purchases = purchaseService.getAllPurchases(
-      page, gameId, PaymentMethod
+      page, gameId, paymentMethod
     );
     return new ResponseEntity<>(purchases, HttpStatus.OK);
   }
