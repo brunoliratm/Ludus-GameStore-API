@@ -9,13 +9,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.ludus.dto.PurchaseDTO;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.ludus.dtos.requests.PurchaseDtoRequest;
+import com.ludus.dtos.responses.ApiDtoResponse;
+import com.ludus.dtos.responses.PurchaseDtoResponse;
 import com.ludus.services.PurchaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @Controller
-@RequestMapping("/api/purchases")
+@RequestMapping("/api/${api.version}/purchases")
 public class PurchaseController {
 
   @Autowired
@@ -23,29 +26,35 @@ public class PurchaseController {
 
   @Operation(summary = "Get All Purchases")
   @GetMapping()
-  public ResponseEntity<List<PurchaseDTO>> getPurchases() {
-    List<PurchaseDTO> purchases = purchaseService.getAllPurchases();
+  public ResponseEntity<ApiDtoResponse<PurchaseDtoResponse>> getPurchases(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) Long gameId,
+      @RequestParam(required = false) String PaymentMethod
+  ) {
+    ApiDtoResponse<PurchaseDtoResponse> purchases = purchaseService.getAllPurchases(
+      page, gameId, PaymentMethod
+    );
     return new ResponseEntity<>(purchases, HttpStatus.OK);
   }
 
   @Operation(summary = "Get a Purchase by ID")
   @GetMapping("/{id}")
-  public ResponseEntity<PurchaseDTO> getPurchase(@PathVariable Long id) {
-    PurchaseDTO purchase = purchaseService.getPurchase(id);
+  public ResponseEntity<PurchaseDtoResponse> getPurchase(@PathVariable Long id) {
+    PurchaseDtoResponse purchase = purchaseService.getPurchase(id);
     return new ResponseEntity<>(purchase, HttpStatus.OK);
   }
 
   @Operation(summary = "Create a New Purchase")
   @PostMapping()
-  public ResponseEntity<Void> createPurchase(@RequestBody PurchaseDTO purchaseDTO) {
+  public ResponseEntity<Void> createPurchase(@RequestBody PurchaseDtoRequest purchaseDTO) {
     purchaseService.createPurchase(purchaseDTO);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @Operation(summary = "Get a Purchase by user")
   @GetMapping("/user/{id}")
-  public ResponseEntity<List<PurchaseDTO>> getPurchasesByUser(@PathVariable Long id) {
-    List<PurchaseDTO> purchases = purchaseService.getPurchasesByUser(id);
+  public ResponseEntity<List<PurchaseDtoResponse>> getPurchasesByUser(@PathVariable Long id) {
+    List<PurchaseDtoResponse> purchases = purchaseService.getPurchasesByUser(id);
     return new ResponseEntity<>(purchases, HttpStatus.OK);
   }
 }

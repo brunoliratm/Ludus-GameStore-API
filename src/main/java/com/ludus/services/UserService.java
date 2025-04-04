@@ -6,16 +6,25 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import com.ludus.dto.UserDTO;
+import com.ludus.dtos.requests.UserDtoRequest;
+import com.ludus.dtos.requests.UserPatchDtoRequest;
+import com.ludus.dtos.responses.ApiDtoResponse;
+import com.ludus.dtos.responses.InfoDtoResponse;
+import com.ludus.dtos.responses.UserDtoResponse;
 import com.ludus.exceptions.InvalidIdException;
+import com.ludus.exceptions.InvalidPageException;
 import com.ludus.exceptions.NotFoundException;
 import com.ludus.exceptions.RetrievalException;
 import com.ludus.exceptions.ValidationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.ludus.models.UserModel;
-import com.ludus.repository.UserRepository;
+import com.ludus.repositories.UserRepository;
+import com.ludus.utils.UtilHelper;
 
 @Service
 public class UserService {
@@ -26,38 +35,52 @@ public class UserService {
     @Autowired
     private MessageSource messageSource;
 
-    public List<UserDTO> getAllUsers() {
-        try {
-            List<UserModel> userModels = userRepository.findAll();
-            return userModels.stream().filter(user -> user.getActive() == 1).map(this::convertToDTO)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RetrievalException(messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
+    @Autowired
+    private UtilHelper utilHelper;
+
+    public ApiDtoResponse<UserDtoResponse> getAllUsers(int page, String name) {
+        if (page < 1) {
+            throw new InvalidPageException("Page number must be greater than 0");
         }
+
+        int pageIndex = page - 1;
+        Pageable pageable = PageRequest.of(pageIndex, 10);
+        Page<UserModel> userPage;
+
+        if (name != null) {
+            userPage = userRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable);
+        } else {
+            userPage = userRepository.findByActiveTrue(pageable);
+        }
+
+        List<UserDtoResponse> userDTOs = userPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());  
+                    
+        InfoDtoResponse info = utilHelper.buildPageableInfoDto(userPage, "/users");
+        return new ApiDtoResponse<>(info, userDTOs);
     }
 
-    public UserDTO getUserById(Long id) {
-        try {
-            UserModel userModel = userRepository.findById(id)
-                    .orElseThrow(() -> new RetrievalException(messageSource.getMessage("user.not.found", 
-                            new Object[]{id}, Locale.getDefault())));
-
-            if (userModel.getActive() == 0) {
-                throw new NotFoundException(messageSource.getMessage("user.not.found", 
-                        new Object[]{id}, Locale.getDefault()));
-            }
-            return convertToDTO(userModel);
-        } catch (Exception e) {
-            throw new RetrievalException(messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
+    public UserDtoResponse getUserById(Long id) {
+        if (id == null || id < 1) {
+            throw new InvalidIdException();
         }
+        UserModel userModel = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault())));
+
+        if (userModel.isActive() == false) {
+            throw new NotFoundException(
+                    messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault()));
+        }
+        return convertToDTO(userModel);
     }
 
-    public void createUser(UserDTO userDTO, BindingResult bindingResult) {
+    public void createUser(UserDtoRequest userDTO, BindingResult bindingResult) {
         validateFields(userDTO, bindingResult, null);
 
         try {
             UserModel userModel = new UserModel();
-            userModel.setCpf(userDTO.cpf());
             userModel.setEmail(userDTO.email());
             userModel.setName(userDTO.name());
             userModel.setPassword(userDTO.password());
@@ -67,7 +90,7 @@ public class UserService {
         }
     }
 
-    public void updateUser(Long id, UserDTO userDTO, BindingResult bindingResult) {
+    public void updateUser(Long id, UserPatchDtoRequest userDTO, BindingResult bindingResult) {
         if (id == null || id < 1)
             throw new InvalidIdException();
 
@@ -75,12 +98,9 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
                         new Object[]{id}, Locale.getDefault())));
 
-        validateFields(userDTO, bindingResult, id);
+        validatePatchFields(userDTO, bindingResult, id);
 
         try {
-            if (userDTO.cpf() != null) {
-                userModel.setCpf(userDTO.cpf());
-            }
             if (userDTO.email() != null) {
                 userModel.setEmail(userDTO.email());
             }
@@ -105,25 +125,39 @@ public class UserService {
                         new Object[]{id}, Locale.getDefault())));
 
         try {
-            userModel.setActive(0);
+            userModel.setActive(false);
             userRepository.save(userModel);
         } catch (Exception e) {
             throw new RetrievalException(messageSource.getMessage("user.deletion.error", null, Locale.getDefault()));
         }
     }
 
-    private UserDTO convertToDTO(UserModel userModel) {
-        return new UserDTO(userModel.getCpf(), userModel.getEmail(), userModel.getName(), null);
+    private UserDtoResponse convertToDTO(UserModel userModel) {
+        return new UserDtoResponse(userModel.getId(), userModel.getEmail(), userModel.getName());
     }
 
-    public void validateFields(UserDTO userDTO, BindingResult bindingResult, Long userId) {
+    public void validateFields(UserDtoRequest userDTO, BindingResult bindingResult, Long userId) {
 
         List<String> errors = new ArrayList<>();
 
-        UserModel findByCpf = userRepository.findByCpf(userDTO.cpf());
-        if (findByCpf != null && (userId == null || !findByCpf.getId().equals(userId))) {
-            errors.add(messageSource.getMessage("cpf.already.exists", null, Locale.getDefault()));
+        UserModel findByEmail = userRepository.findByEmail(userDTO.email());
+        if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
+            errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
+
+        if (bindingResult.hasErrors()) {
+            errors.addAll(bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
+                    .collect(Collectors.toList()));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors);
+        }
+    }
+
+    public void validatePatchFields(UserPatchDtoRequest userDTO, BindingResult bindingResult, Long userId) {
+
+        List<String> errors = new ArrayList<>();
 
         UserModel findByEmail = userRepository.findByEmail(userDTO.email());
         if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {

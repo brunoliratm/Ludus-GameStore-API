@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "api.base_url",
+    "type": "java.lang.String",
+    "description": "Base URL for the API endpoints, typically including protocol, host, port and base path"
+  },
+  {
+    "name": "api.version",
+    "type": "java.lang.String",
+    "description": "API version identifier used in URL paths and documentation (e.g., 'v1')"
+  }
+]}

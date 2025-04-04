@@ -1,13 +1,13 @@
-package com.ludus.dto;
+package com.ludus.dtos.requests;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 
-public record PurchaseDTO(
+public record PurchaseDtoRequest(
 
     @NotNull(message = "purchase.user.not.found")
     Long userId,
@@ -17,7 +17,7 @@ public record PurchaseDTO(
     
     @NotNull(message = "purchase.date.required")
     @PastOrPresent(message = "purchase.date.invalid")
-    LocalDateTime purchaseDate,
+    LocalDate purchaseDate,
     
     @NotNull(message = "price.NotNull")
     @Min(value = 0, message = "price.Min")

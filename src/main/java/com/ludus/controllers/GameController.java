@@ -1,10 +1,11 @@
 package com.ludus.controllers;
 
-import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import com.ludus.dto.GameDTO;
+import com.ludus.dtos.requests.GameDtoRequest;
+import com.ludus.dtos.responses.ApiDtoResponse;
+import com.ludus.dtos.responses.GameDtoResponse;
 import com.ludus.services.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -13,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
 @Controller
-@RequestMapping("/api/games")
+@RequestMapping("/api/${api.version}/games")
 public class GameController {
 
   @Autowired
@@ -21,28 +22,34 @@ public class GameController {
 
   @Operation(summary = "Get All Games")
   @GetMapping()
-  public ResponseEntity<List<GameDTO>> getAllGames() {
-    List<GameDTO> games = gameService.getAllGames();
-    return ResponseEntity.ok(games);
+  public ResponseEntity<ApiDtoResponse<GameDtoResponse>> getAllGames(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) String genre,
+      @RequestParam(required = false) String name
+  ) {
+    ApiDtoResponse<GameDtoResponse> games = gameService.getAllGames(
+      page, genre, name
+    );
+    return new ResponseEntity<>(games, HttpStatus.OK);
   }
 
   @Operation(summary = "Get a Game by ID")
   @GetMapping("/{id}")
-  public ResponseEntity<GameDTO> getGame(@PathVariable Long id) {
-    GameDTO game = gameService.getGame(id);
-    return ResponseEntity.ok(game);
+  public ResponseEntity<GameDtoResponse> getGame(@PathVariable Long id) {
+    GameDtoResponse game = gameService.getGame(id);
+    return new ResponseEntity<>(game, HttpStatus.OK);
   }
 
   @Operation(summary = "Create a New Game")
   @PostMapping()
-  public ResponseEntity<Void> createGame(@RequestBody @Valid GameDTO gameDTO, BindingResult bindingResult) {
+  public ResponseEntity<Void> createGame(@RequestBody @Valid GameDtoRequest gameDTO, BindingResult bindingResult) {
     gameService.createGame(gameDTO, bindingResult);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @Operation(summary = "Update an Existing Game")
   @PutMapping("/{id}")
-  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDTO gameDTO, BindingResult bindingResult) {
+  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDtoRequest gameDTO, BindingResult bindingResult) {
     gameService.updateGame(id, gameDTO, bindingResult);
     return new ResponseEntity<>(HttpStatus.OK);
   }

@@ -9,6 +9,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import com.ludus.exceptions.NotFoundException;
 import com.ludus.exceptions.InvalidIdException;
 import com.ludus.exceptions.ValidationException;
+import com.ludus.exceptions.InvalidPageException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
@@ -35,8 +36,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleTypeMismatch(
       MethodArgumentTypeMismatchException ex) {
     Map<String, Object> body = new HashMap<>();
-    body.put("message", "Invalid ID format: must be a number");
-    body.put("details", "The value '" + ex.getValue() + "' is not a valid ID");
+    if ("page".equals(ex.getName())) {
+        body.put("message", "Invalid Page format: must be a number");
+    } else {
+        body.put("message", "Invalid ID format: must be a number");
+    }
+    body.put("details", "The value '" + ex.getValue() + "' is not valid for parameter '" + ex.getName() + "'");
 
     return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
@@ -56,6 +61,14 @@ public class GlobalExceptionHandler {
     response.put("error", "Validation failed");
     response.put("details", ex.getErrors());
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(InvalidPageException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidPageException(InvalidPageException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", ex.getMessage());
+
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
 
 }

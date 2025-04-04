@@ -1,7 +1,7 @@
 package com.ludus.models;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import com.ludus.enums.PaymentMethod;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +37,7 @@ public class PurchaseModel {
   private UserModel user;
 
   @Column(nullable = false)
-  private LocalDateTime purchaseDate;
+  private LocalDate purchaseDate;
 
   @Column(nullable = false)
   private BigDecimal price;
