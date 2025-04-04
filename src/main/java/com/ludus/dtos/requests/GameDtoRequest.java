@@ -12,7 +12,7 @@ public record GameDtoRequest(
   String name,
   
   @NotBlank(message = "genre.NotBlank")
-  @Pattern(regexp = "^(ACTION|ADVENTURE|FIGHTING|HORROR|MMORPG|RACING|RPG|SHOOTER|SIMULATION|SPORTS|STRATEGY|SUVIVAL|OTHER)$", message = "genero.Invalid")
+  @Pattern(regexp = "^(ACTION|ADVENTURE|FIGHTING|HORROR|MMORPG|RACING|RPG|SHOOTER|SIMULATION|SPORTS|STRATEGY|SURVIVAL|OTHER)$", message = "invalid.genre")
   @Size(min = 3, max = 30, message = "genre.Size")
   String genre,
   
