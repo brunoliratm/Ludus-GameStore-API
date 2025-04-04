@@ -12,6 +12,7 @@ import com.ludus.exceptions.ValidationException;
 import com.ludus.exceptions.InvalidPageException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -46,15 +47,6 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler(NoHandlerFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleNoHandlerFoundException(
-      NoHandlerFoundException ex) {
-    Map<String, Object> body = new HashMap<>();
-    body.put("message", "The requested resource was not found: " + ex.getRequestURL());
-
-    return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
-  }
-
   @ExceptionHandler(ValidationException.class)
   public ResponseEntity<Map<String, Object>> handleValidationException(ValidationException ex) {
     Map<String, Object> response = new HashMap<>();
@@ -71,4 +63,11 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
 
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleNoResourceFoundException(NoResourceFoundException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", "The requested route was not found.");
+    return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+              
+  }
 }
