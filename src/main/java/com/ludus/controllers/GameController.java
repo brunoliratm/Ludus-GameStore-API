@@ -1,9 +1,9 @@
 package com.ludus.controllers;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import com.ludus.dtos.requests.GameDtoRequest;
+import com.ludus.dtos.requests.GamePatchDtoRequest;
 import com.ludus.dtos.responses.ApiDtoResponse;
 import com.ludus.dtos.responses.GameDtoResponse;
 import com.ludus.services.GameService;
@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
-@Controller
+@RestController
 @RequestMapping("/api/${api.version}/games")
 public class GameController {
 
@@ -49,7 +49,7 @@ public class GameController {
 
   @Operation(summary = "Update an Existing Game")
   @PutMapping("/{id}")
-  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GameDtoRequest gameDTO, BindingResult bindingResult) {
+  public ResponseEntity<Void> updateGame(@PathVariable Long id, @RequestBody @Valid GamePatchDtoRequest gameDTO, BindingResult bindingResult) {
     gameService.updateGame(id, gameDTO, bindingResult);
     return new ResponseEntity<>(HttpStatus.OK);
   }

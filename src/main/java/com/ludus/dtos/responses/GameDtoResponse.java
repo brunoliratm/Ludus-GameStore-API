@@ -1,5 +1,6 @@
 package com.ludus.dtos.responses;
 
+import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -9,7 +10,7 @@ public record GameDtoResponse(
   String genre,
   int releaseYear,
   String platform,
-  Float price
+  BigDecimal price
 ) {
 
 }

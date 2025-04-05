@@ -28,14 +28,6 @@ public class PurchaseModel {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne
-  @JoinColumn(name = "game_id")
-  private GameModel game;
-
-  @ManyToOne
-  @JoinColumn(name = "user_id")
-  private UserModel user;
-
   @Column(nullable = false)
   private LocalDate purchaseDate;
 
@@ -45,5 +37,13 @@ public class PurchaseModel {
   @Column(nullable = false, length = 20)
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
+
+  @ManyToOne
+  @JoinColumn(name = "game_id")
+  private GameModel game;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private UserModel user;
 
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import com.ludus.dtos.requests.GameDtoRequest;
+import com.ludus.dtos.requests.GamePatchDtoRequest;
 import com.ludus.dtos.responses.ApiDtoResponse;
 import com.ludus.dtos.responses.InfoDtoResponse;
 import com.ludus.dtos.responses.GameDtoResponse;
@@ -104,26 +105,47 @@ public class GameService {
     }
   }
 
-  public void updateGame(Long id, GameDtoRequest gameDTO, BindingResult bindingResult) {
+  public void updateGame(Long id, GamePatchDtoRequest gameDTO, BindingResult bindingResult) {
     if (id == null || id < 1)
       throw new InvalidIdException();
-    validateFields(gameDTO, bindingResult);
+    validatePatchFields(gameDTO, bindingResult);
 
-    try {
-      GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
+    GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
           messageSource.getMessage("game.not.found", new Object[] {id}, Locale.getDefault())));
+    if (gameDTO.name() != null) {
       gameModel.setName(gameDTO.name());
-      gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
-      gameModel.setReleaseYear(gameDTO.releaseYear());
-      gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
-      gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
-      gameRepository.save(gameModel);
-    } catch (NotFoundException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new RetrievalException(
-          messageSource.getMessage("game.update.error", null, Locale.getDefault()));
     }
+    if (gameDTO.genre() != null) {
+      try {
+        gameModel.setGenre(GameGenre.valueOf(gameDTO.genre().toUpperCase().trim()));
+      } catch (IllegalArgumentException e) {
+        throw new NotFoundException(
+            messageSource.getMessage("invalid.genre", null, Locale.getDefault()));
+      }
+    }
+    if (gameDTO.releaseYear() != null) {
+      gameModel.setReleaseYear(gameDTO.releaseYear());
+    }
+    if (gameDTO.platform() != null) {
+      try {
+        gameModel.setPlatform(GamePlatform.valueOf(gameDTO.platform().toUpperCase().trim()));
+      } catch (IllegalArgumentException e) {
+        throw new NotFoundException(
+            messageSource.getMessage("invalid.platform", null, Locale.getDefault()));
+      }
+    }
+    if (gameDTO.price() != null) {
+      gameModel.setPrice(BigDecimal.valueOf(gameDTO.price()));
+    }
+    if (gameDTO.name() == null && gameDTO.genre() == null && gameDTO.releaseYear() == null
+        && gameDTO.platform() == null && gameDTO.price() == null) {
+      throw new NotFoundException(
+          messageSource.getMessage("game.not.found", new Object[] {id}, Locale.getDefault()));
+    }
+    if (gameDTO.name() != null) {
+      gameModel.setName(gameDTO.name());
+    }
+    gameRepository.save(gameModel);
   }
 
   public void deleteGame(Long id) {
@@ -145,10 +167,38 @@ public class GameService {
   private GameDtoResponse convertToDTO(GameModel gameModel) {
     return new GameDtoResponse(gameModel.getId(),gameModel.getName(), gameModel.getGenre().toString(),
         gameModel.getReleaseYear(), gameModel.getPlatform().toString(),
-        gameModel.getPrice().floatValue());
+        gameModel.getPrice());
   }
 
   public void validateFields(GameDtoRequest gamedto, BindingResult result) {
+    List<String> errors = new ArrayList<>();
+
+    if (result.hasErrors()) {
+      errors.addAll(result.getFieldErrors().stream().map(FieldError::getDefaultMessage)
+          .collect(Collectors.toList()));
+    }
+
+    if (gamedto.genre() != null) {
+      try {
+        GameGenre.valueOf(gamedto.genre().toUpperCase().trim());
+      } catch (IllegalArgumentException e) {
+        errors.add(messageSource.getMessage("invalid.genre", null, Locale.getDefault()));
+      }
+    }
+
+    if (gamedto.platform() != null) {
+      try {
+        GamePlatform.valueOf(gamedto.platform().toUpperCase().trim());
+      } catch (IllegalArgumentException e) {
+        errors.add(messageSource.getMessage("invalid.platform", null, Locale.getDefault()));
+      }
+    }
+
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+  }
+  public void validatePatchFields(GamePatchDtoRequest gamedto, BindingResult result) {
     List<String> errors = new ArrayList<>();
 
     if (result.hasErrors()) {

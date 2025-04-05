@@ -12,6 +12,7 @@ import com.ludus.exceptions.InvalidPageException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -68,5 +69,22 @@ public class GlobalExceptionHandler {
     body.put("message", "The requested route was not found.");
     return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
               
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    Map<String, Object> body = new HashMap<>();
+    
+    body.put("details", "The provided JSON is malformed or contains syntax errors");
+    
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", ex.getMessage());
+    
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
 }

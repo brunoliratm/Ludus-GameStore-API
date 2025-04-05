@@ -1,29 +1,30 @@
 package com.ludus.dtos.requests;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record PurchaseDtoRequest(
-
     @NotNull(message = "purchase.user.not.found")
-    Long userId,
+    @Positive(message = "User ID must be greater than 0")
+    @JsonProperty("userId") Long userId,
     
     @NotNull(message = "purchase.game.not.found")
-    Long gameId,
-    
-    @NotNull(message = "purchase.date.required")
-    @PastOrPresent(message = "purchase.date.invalid")
-    LocalDate purchaseDate,
-    
-    @NotNull(message = "price.NotNull")
-    @Min(value = 0, message = "price.Min")
-    BigDecimal price,
-    
+    @Positive(message = "Game ID must be greater than 0")
+    @JsonProperty("gameId") Long gameId,
+
     @NotBlank(message = "purchase.invalid.payment.method")
-    String paymentMethod
+    @JsonProperty("paymentMethod") String paymentMethod
 ) {
+    @Override
+    public String toString() {
+        return "PurchaseDtoRequest{" +
+                "userId=" + userId +
+                ", gameId=" + gameId +
+                ", paymentMethod='" + paymentMethod + '\'' +
+                '}';
+    }
 }
