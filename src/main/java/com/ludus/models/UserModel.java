@@ -16,12 +16,9 @@ public class UserModel implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    private int active = 1;
-    
-    @Column(nullable = false, length = 11)
-    private String cpf;
+    private boolean active = true;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
 
     @Column(nullable = false, length = 100)

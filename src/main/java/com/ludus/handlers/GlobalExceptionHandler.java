@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.NoHandlerFoundException;
 import com.ludus.exceptions.NotFoundException;
 import com.ludus.exceptions.InvalidIdException;
 import com.ludus.exceptions.ValidationException;
+import com.ludus.exceptions.InvalidPageException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,19 +37,14 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleTypeMismatch(
       MethodArgumentTypeMismatchException ex) {
     Map<String, Object> body = new HashMap<>();
-    body.put("message", "Invalid ID format: must be a number");
-    body.put("details", "The value '" + ex.getValue() + "' is not a valid ID");
+    if ("page".equals(ex.getName())) {
+        body.put("message", "Invalid Page format: must be a number");
+    } else {
+        body.put("message", "Invalid ID format: must be a number");
+    }
+    body.put("details", "The value '" + ex.getValue() + "' is not valid for parameter '" + ex.getName() + "'");
 
     return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-  }
-
-  @ExceptionHandler(NoHandlerFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleNoHandlerFoundException(
-      NoHandlerFoundException ex) {
-    Map<String, Object> body = new HashMap<>();
-    body.put("message", "The requested resource was not found: " + ex.getRequestURL());
-
-    return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
   }
 
   @ExceptionHandler(ValidationException.class)
@@ -58,4 +55,36 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
   }
 
+  @ExceptionHandler(InvalidPageException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidPageException(InvalidPageException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", ex.getMessage());
+
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleNoResourceFoundException(NoResourceFoundException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", "The requested route was not found.");
+    return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+              
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    Map<String, Object> body = new HashMap<>();
+    
+    body.put("details", "The provided JSON is malformed or contains syntax errors");
+    
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", ex.getMessage());
+    
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+  }
 }

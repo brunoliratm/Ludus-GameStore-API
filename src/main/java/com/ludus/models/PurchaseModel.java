@@ -1,7 +1,7 @@
 package com.ludus.models;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import com.ludus.enums.PaymentMethod;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,16 +28,8 @@ public class PurchaseModel {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne
-  @JoinColumn(name = "game_id")
-  private GameModel game;
-
-  @ManyToOne
-  @JoinColumn(name = "user_id")
-  private UserModel user;
-
   @Column(nullable = false)
-  private LocalDateTime purchaseDate;
+  private LocalDate purchaseDate;
 
   @Column(nullable = false)
   private BigDecimal price;
@@ -45,5 +37,13 @@ public class PurchaseModel {
   @Column(nullable = false, length = 20)
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
+
+  @ManyToOne
+  @JoinColumn(name = "game_id")
+  private GameModel game;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private UserModel user;
 
 }

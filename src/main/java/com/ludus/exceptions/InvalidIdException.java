@@ -5,4 +5,8 @@ public class InvalidIdException extends RuntimeException {
     super("Invalid ID");
   }
 
+  public InvalidIdException(String message) {
+    super(message);
+  }
+
 }
