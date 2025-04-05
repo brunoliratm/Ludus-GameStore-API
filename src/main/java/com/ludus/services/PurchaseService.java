@@ -46,8 +46,10 @@ public class PurchaseService {
     @Autowired
     private UtilHelper utilHelper;
 
-    public ApiDtoResponse<PurchaseDtoResponse> getAllPurchases(int page, Long gameId,
-            String paymentMethod) {
+    public ApiDtoResponse<PurchaseDtoResponse> getAllPurchases(
+        int page, 
+        Long gameId,
+        String paymentMethod) {
         if (page < 1) {
             throw new InvalidPageException("Page number must be greater than 0");
         }
@@ -66,9 +68,8 @@ public class PurchaseService {
             try {
                 paymentMethodEnum = PaymentMethod.valueOf(paymentMethod.toUpperCase().trim());
             } catch (IllegalArgumentException e) {
-                String validOptions = getValidPaymentMethodOptions();
-                throw new IllegalArgumentException(
-                    "Invalid payment method: '" + paymentMethod + "'. Valid options are: " + validOptions);
+                throw new NotFoundException(
+                    messageSource.getMessage("purchase.invalid.payment.method", null, Locale.getDefault()));
             }
         }
 
@@ -86,18 +87,6 @@ public class PurchaseService {
                 .map(this::convertToDTO).collect(Collectors.toList());
         InfoDtoResponse info = utilHelper.buildPageableInfoDto(purchasePage, "/purchases");
         return new ApiDtoResponse<>(info, purchaseDTOs);
-    }
-    
-    private String getValidPaymentMethodOptions() {
-        PaymentMethod[] methods = PaymentMethod.values();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < methods.length; i++) {
-            sb.append(methods[i].name());
-            if (i < methods.length - 1) {
-                sb.append(", ");
-            }
-        }
-        return sb.toString();
     }
 
     public PurchaseDtoResponse getPurchase(Long id) {

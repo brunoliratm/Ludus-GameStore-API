@@ -51,11 +51,13 @@ public class GameService {
 
     int pageIndex = page - 1;
     Pageable pageable = PageRequest.of(pageIndex, 10);
+
     Page<GameModel> gamePage;
 
+    GameGenre genreEnum = null;
     if (genre != null) {
       try {
-        GameGenre.valueOf(genre.toUpperCase().trim());
+        genreEnum = GameGenre.valueOf(genre.toUpperCase().trim());
       } catch (IllegalArgumentException e) {
         throw new NotFoundException(
             messageSource.getMessage("invalid.genre", null, Locale.getDefault()));
@@ -63,9 +65,9 @@ public class GameService {
     }
 
     if (genre != null && name != null) {
-      gamePage = gameRepository.findByGenreAndName(genre, name, pageable);
+      gamePage = gameRepository.findByGenreAndName(genreEnum, name, pageable);
     } else if (genre != null) {
-      gamePage = gameRepository.findByGenre(genre, pageable);
+      gamePage = gameRepository.findByGenre(genreEnum, pageable);
     } else if (name != null) {
       gamePage = gameRepository.findByName(name, pageable);
     } else {
