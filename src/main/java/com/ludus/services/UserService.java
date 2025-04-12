@@ -22,6 +22,8 @@ import com.ludus.exceptions.RetrievalException;
 import com.ludus.exceptions.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.ludus.models.UserModel;
 import com.ludus.repositories.UserRepository;
 import com.ludus.utils.UtilHelper;
@@ -172,5 +174,13 @@ public class UserService {
         if (!errors.isEmpty()) {
             throw new ValidationException(errors);
         }
+    }
+
+    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
+        UserModel user = userRepository.findByEmail(email);
+        if (user == null || !user.isActive()) {
+            throw new NotFoundException("User not found");
+        }
+        return user;
     }
 }
