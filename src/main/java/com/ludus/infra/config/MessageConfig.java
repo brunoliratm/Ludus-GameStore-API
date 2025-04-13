@@ -1,4 +1,4 @@
-package com.ludus.config;
+package com.ludus.infra.config;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
