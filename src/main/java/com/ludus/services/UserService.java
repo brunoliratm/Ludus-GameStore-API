@@ -3,6 +3,7 @@ package com.ludus.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.ludus.models.UserModel;
 import com.ludus.repositories.UserRepository;
 import com.ludus.utils.UtilHelper;
@@ -85,7 +87,8 @@ public class UserService {
             UserModel userModel = new UserModel();
             userModel.setEmail(userDTO.email());
             userModel.setName(userDTO.name());
-            userModel.setPassword(userDTO.password());
+            String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.password());
+            userModel.setPassword(encryptedPassword);
             userRepository.save(userModel);
         } catch (Exception e) {
             throw new RetrievalException(messageSource.getMessage("user.creation.error", null, Locale.getDefault()));
@@ -110,7 +113,8 @@ public class UserService {
                 userModel.setName(userDTO.name());
             }
             if (userDTO.password() != null) {
-                userModel.setPassword(userDTO.password());
+                String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.password());
+                userModel.setPassword(encryptedPassword);
             }
             userRepository.save(userModel);
         } catch (Exception e) {
@@ -142,8 +146,8 @@ public class UserService {
 
         List<String> errors = new ArrayList<>();
 
-        UserModel findByEmail = userRepository.findByEmail(userDTO.email());
-        if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
+        Optional<UserModel> findByEmail = userRepository.findByEmail(userDTO.email());
+        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
             errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
 
@@ -161,8 +165,8 @@ public class UserService {
 
         List<String> errors = new ArrayList<>();
 
-        UserModel findByEmail = userRepository.findByEmail(userDTO.email());
-        if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
+        Optional<UserModel> findByEmail = userRepository.findByEmail(userDTO.email());
+        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
             errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
 
@@ -177,10 +181,13 @@ public class UserService {
     }
 
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
-        UserModel user = userRepository.findByEmail(email);
-        if (user == null || !user.isActive()) {
+        if (userRepository.findUserByEmail(email) == null || !userRepository.findByEmail(email).get().isActive()){
             throw new NotFoundException("User not found");
         }
-        return user;
+        return userRepository.findUserByEmail(email);
+    }
+
+    public Optional<UserModel> findByEmail(String email){
+        return userRepository.findByEmail(email);
     }
 }
