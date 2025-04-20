@@ -22,25 +22,17 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String SECRET_KEY;
 
-    private AuthenticationManager authenticationManager;
-    private UserService userService;
-
-    public TokenService(AuthenticationManager authenticationManager, UserService userService) {
-        this.authenticationManager = authenticationManager;
-        this.userService = userService;
-    }
-
-    public String createToken(AuthDto loginDTO) {
-
+    public String createToken(AuthDto loginDTO, AuthenticationManager authenticationManager) {
         try {
             var userPassword = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
-            var auth = this.authenticationManager.authenticate(userPassword);
+            var auth = authenticationManager.authenticate(userPassword);
             var token = generateToken((UserModel) auth.getPrincipal());
             return token.toString();
         } catch (Exception e) {
             throw new RuntimeException("Error while logging in", e.getCause());
         }
     }
+    
     private String generateToken(UserModel userModel) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);

@@ -8,6 +8,9 @@ import com.ludus.exceptions.NotFoundException;
 import com.ludus.exceptions.UserInactiveException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,61 +18,52 @@ import org.springframework.validation.BindingResult;
 import java.util.Optional;
 
 @Service
-public class AuthService {
+public class AuthService implements UserDetailsService {
 
     @Value("${api.security.token.secret}")
     private String SECRET_KEY;
-
-    private AuthenticationManager authenticationManager;
     private UserService userService;
     private TokenService tokenService;
 
-    AuthService(AuthenticationManager authenticationManager, UserService userService, TokenService tokenService) {
-        this.authenticationManager = authenticationManager;
+    AuthService(UserService userService, TokenService tokenService) {
         this.userService = userService;
         this.tokenService = tokenService;
     }
 
-    @Transactional
-    public String registerUser(UserDtoRequest userDto, BindingResult result) {
-        this.userService.createUser(userDto, result);
-        return login(new AuthDto(userDto.email(), userDto.password()));
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userService.loadUserByEmail(email);
     }
 
-    public String login(AuthDto loginDTO) {
+    @Transactional
+    public String registerUser(UserDtoRequest userDto, BindingResult result,
+            AuthenticationManager authenticationManager) {
+        this.userService.createUser(userDto, result);
+        return login(new AuthDto(userDto.email(), userDto.password()), authenticationManager);
+    }
+
+    public String login(AuthDto loginDTO, AuthenticationManager authenticationManager) {
         validateLogin(loginDTO);
-        return this.tokenService.createToken(loginDTO);
+        return this.tokenService.createToken(loginDTO, authenticationManager);
     }
 
     private void validateLogin(AuthDto loginDTO) {
-        try {
-            if (loginDTO.email() == null || loginDTO.password() == null) {
-                throw new InvalidCredentialsException("Email e senha são obrigatórios");
-            } else if (!loginDTO.email().matches("^[^@]+@[^@]+$")) {
-                throw new InvalidCredentialsException("Email no formato incorreto");
-            }
-
-            Optional<UserModel> user = this.userService.findByEmail(loginDTO.email());
-
-            if (user.isEmpty())
-                throw new NotFoundException("User Not found");
-
-            if (!user.get().isEnabled())
-                throw new UserInactiveException("Usuário inativo");
-
-            if (!new BCryptPasswordEncoder().matches(loginDTO.password(), user.get().getPassword())) {
-                throw new InvalidCredentialsException("Email ou senha não conferem");
-            }
-
-        } catch (InvalidCredentialsException e) {
-            throw new InvalidCredentialsException(e.getMessage());
-        } catch (NotFoundException e) {
-            throw new NotFoundException();
-        } catch (UserInactiveException e) {
-            throw new UserInactiveException(e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Erro durante o login");
+        if (loginDTO.email() == null || loginDTO.password() == null) {
+            throw new InvalidCredentialsException("Email and password are required");
+        } else if (!loginDTO.email().matches("^[^@]+@[^@]+$")) {
+            throw new InvalidCredentialsException("Invalid email format");
         }
 
+        Optional<UserModel> user = this.userService.findByEmail(loginDTO.email());
+
+        if (user.isEmpty())
+            throw new NotFoundException("User not found");
+
+        if (!user.get().isEnabled())
+            throw new UserInactiveException("User inactive");
+
+        if (!new BCryptPasswordEncoder().matches(loginDTO.password(), user.get().getPassword())) {
+            throw new InvalidCredentialsException("Email or password do not match");
+        }
     }
 }

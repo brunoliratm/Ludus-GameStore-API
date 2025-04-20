@@ -20,7 +20,7 @@ public class UserModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private boolean active = true;
 
     @Column(nullable = false, length = 100, unique = true)
@@ -29,7 +29,7 @@ public class UserModel implements UserDetails {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 100)
     private String password;
 
     @Column(name = "reset_password_code", length = 6)
@@ -42,8 +42,13 @@ public class UserModel implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (role == UserRole.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        if (role == UserRole.ADMIN)
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_" + UserRole.ADMIN.getRole().toUpperCase()),
+                    new SimpleGrantedAuthority("ROLE_" + UserRole.USER.getRole().toUpperCase()));
+        else
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_" + UserRole.USER.getRole().toUpperCase()));
     }
 
     @Override
