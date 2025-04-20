@@ -8,5 +8,10 @@
     "name": "api.version",
     "type": "java.lang.String",
     "description": "API version identifier used in URL paths and documentation (e.g., 'v1')"
+  },
+  {
+    "name": "api.security.token.secret",
+    "type": "java.lang.String",
+    "description": "Secret key used for JWT token generation and validation"
   }
 ]}
