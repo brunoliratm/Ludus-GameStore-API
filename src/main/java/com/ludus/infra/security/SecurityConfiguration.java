@@ -4,6 +4,7 @@ import com.ludus.handlers.CustomAccessDeniedHandler;
 import com.ludus.handlers.CustomAuthenticationEntryHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,28 +28,37 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, CustomAuthenticationEntryHandler customAuthenticationEntryHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,
+            CustomAuthenticationEntryHandler customAuthenticationEntryHandler) throws Exception {
 
-            return httpSecurity
-                    .csrf(csrf -> csrf.disable())
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                            .requestMatchers("/api/v1/favorites/**").authenticated()
-                            .requestMatchers("/api/v1/auth/**").permitAll()
-                            .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**",
-                                    "/swagger-resources/**", "/webjars/**").permitAll()
-                    )
-                    .exceptionHandling(exception -> exception
+        return httpSecurity.csrf(csrf -> csrf.disable())
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/games/**").permitAll()
+                        .requestMatchers("/api/v1/games/**").hasRole("ADMIN")
+                        
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/api-docs/**").permitAll()
+                        .requestMatchers("/api-docs").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                )
+                .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryHandler)
-                            .accessDeniedHandler(new CustomAccessDeniedHandler())
-                    )
-                    .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                    .build();
+                        .accessDeniedHandler(new CustomAccessDeniedHandler()))
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

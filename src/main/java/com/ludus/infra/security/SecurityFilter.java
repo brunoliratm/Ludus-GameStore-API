@@ -26,8 +26,19 @@ public class SecurityFilter extends OncePerRequestFilter {
         this.userService = userService;
         this.tokenService = tokenService;
     }
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.startsWith("/api/v1/auth/") ||
+            requestURI.startsWith("/swagger-ui/") ||
+            requestURI.startsWith("/api-docs") ||
+            requestURI.startsWith("/v3/api-docs")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         var token = this.recoverToken(request);
         if (token != null) {
             try {
