@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import com.ludus.exceptions.NotFoundException;
+import com.ludus.exceptions.InvalidCredentialsException;
 import com.ludus.exceptions.InvalidIdException;
 import com.ludus.exceptions.ValidationException;
 import com.ludus.exceptions.InvalidPageException;
@@ -87,4 +88,11 @@ public class GlobalExceptionHandler {
     
     return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
   }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
 }

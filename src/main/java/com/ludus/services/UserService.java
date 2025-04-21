@@ -3,8 +3,8 @@ package com.ludus.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,7 @@ import com.ludus.dtos.requests.UserPatchDtoRequest;
 import com.ludus.dtos.responses.ApiDtoResponse;
 import com.ludus.dtos.responses.InfoDtoResponse;
 import com.ludus.dtos.responses.UserDtoResponse;
+import com.ludus.enums.UserRole;
 import com.ludus.exceptions.InvalidIdException;
 import com.ludus.exceptions.InvalidPageException;
 import com.ludus.exceptions.NotFoundException;
@@ -22,6 +23,9 @@ import com.ludus.exceptions.RetrievalException;
 import com.ludus.exceptions.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.ludus.models.UserModel;
 import com.ludus.repositories.UserRepository;
 import com.ludus.utils.UtilHelper;
@@ -29,14 +33,15 @@ import com.ludus.utils.UtilHelper;
 @Service
 public class UserService {
 
-    @Autowired
     private UserRepository userRepository;
-    
-    @Autowired
     private MessageSource messageSource;
-
-    @Autowired
     private UtilHelper utilHelper;
+
+    public UserService(UserRepository userRepository, MessageSource messageSource, UtilHelper utilHelper) {
+        this.userRepository = userRepository;
+        this.messageSource = messageSource;
+        this.utilHelper = utilHelper;
+    }
 
     public ApiDtoResponse<UserDtoResponse> getAllUsers(int page, String name) {
         if (page < 1) {
@@ -48,16 +53,16 @@ public class UserService {
         Page<UserModel> userPage;
 
         if (name != null) {
-            userPage = userRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable);
+            userPage = this.userRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable);
         } else {
-            userPage = userRepository.findByActiveTrue(pageable);
+            userPage = this.userRepository.findByActiveTrue(pageable);
         }
 
         List<UserDtoResponse> userDTOs = userPage.getContent().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());  
                     
-        InfoDtoResponse info = utilHelper.buildPageableInfoDto(userPage, "/users");
+        InfoDtoResponse info = this.utilHelper.buildPageableInfoDto(userPage, "/users");
         return new ApiDtoResponse<>(info, userDTOs);
     }
 
@@ -65,13 +70,13 @@ public class UserService {
         if (id == null || id < 1) {
             throw new InvalidIdException();
         }
-        UserModel userModel = userRepository.findById(id)
+        UserModel userModel = this.userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
-                        messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault())));
+                        this.messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault())));
 
         if (userModel.isActive() == false) {
             throw new NotFoundException(
-                    messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault()));
+                    this.messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault()));
         }
         return convertToDTO(userModel);
     }
@@ -83,8 +88,10 @@ public class UserService {
             UserModel userModel = new UserModel();
             userModel.setEmail(userDTO.email());
             userModel.setName(userDTO.name());
-            userModel.setPassword(userDTO.password());
-            userRepository.save(userModel);
+            String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.password());
+            userModel.setPassword(encryptedPassword);
+            userModel.setRole(UserRole.USER);
+            this.userRepository.save(userModel);
         } catch (Exception e) {
             throw new RetrievalException(messageSource.getMessage("user.creation.error", null, Locale.getDefault()));
         }
@@ -94,7 +101,7 @@ public class UserService {
         if (id == null || id < 1)
             throw new InvalidIdException();
 
-        UserModel userModel = userRepository.findById(id)
+        UserModel userModel = this.userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
                         new Object[]{id}, Locale.getDefault())));
 
@@ -108,11 +115,12 @@ public class UserService {
                 userModel.setName(userDTO.name());
             }
             if (userDTO.password() != null) {
-                userModel.setPassword(userDTO.password());
+                String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.password());
+                userModel.setPassword(encryptedPassword);
             }
-            userRepository.save(userModel);
+            this.userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException(messageSource.getMessage("user.update.error", null, Locale.getDefault()));
+            throw new RetrievalException(this.messageSource.getMessage("user.update.error", null, Locale.getDefault()));
         }
     }
 
@@ -120,15 +128,15 @@ public class UserService {
         if (id == null || id < 1)
             throw new InvalidIdException();
 
-        UserModel userModel = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
+        UserModel userModel = this.userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(this.messageSource.getMessage("user.not.found", 
                         new Object[]{id}, Locale.getDefault())));
 
         try {
             userModel.setActive(false);
-            userRepository.save(userModel);
+            this.userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException(messageSource.getMessage("user.deletion.error", null, Locale.getDefault()));
+            throw new RetrievalException(this.messageSource.getMessage("user.deletion.error", null, Locale.getDefault()));
         }
     }
 
@@ -140,9 +148,9 @@ public class UserService {
 
         List<String> errors = new ArrayList<>();
 
-        UserModel findByEmail = userRepository.findByEmail(userDTO.email());
-        if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
-            errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
+        Optional<UserModel> findByEmail = this.userRepository.findByEmail(userDTO.email());
+        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
+            errors.add(this.messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
 
         if (bindingResult.hasErrors()) {
@@ -159,9 +167,9 @@ public class UserService {
 
         List<String> errors = new ArrayList<>();
 
-        UserModel findByEmail = userRepository.findByEmail(userDTO.email());
-        if (findByEmail != null && (userId == null || !findByEmail.getId().equals(userId))) {
-            errors.add(messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
+        Optional<UserModel> findByEmail = this.userRepository.findByEmail(userDTO.email());
+        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
+            errors.add(this.messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
         }
 
         if (bindingResult.hasErrors()) {
@@ -172,5 +180,16 @@ public class UserService {
         if (!errors.isEmpty()) {
             throw new ValidationException(errors);
         }
+    }
+
+    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
+        if (this.userRepository.findUserByEmail(email) == null || !userRepository.findByEmail(email).get().isActive()){
+            throw new NotFoundException("User not found");
+        }
+        return this.userRepository.findUserByEmail(email);
+    }
+
+    public Optional<UserModel> findByEmail(String email){
+        return this.userRepository.findByEmail(email);
     }
 }
