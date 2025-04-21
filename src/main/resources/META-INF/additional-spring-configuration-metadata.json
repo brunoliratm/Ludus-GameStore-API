@@ -13,5 +13,15 @@
     "name": "api.security.token.secret",
     "type": "java.lang.String",
     "description": "Secret key used for JWT token generation and validation"
+  },
+  {
+    "name": "admin.default.email",
+    "type": "java.lang.String",
+    "description": "Default email address used for creating the initial admin account"
+  },
+  {
+    "name": "admin.default.password",
+    "type": "java.lang.String",
+    "description": "Default password used for creating the initial admin account"
   }
 ]}
