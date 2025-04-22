@@ -162,6 +162,6 @@ public class PurchaseService {
                         purchaseModel.getGame().getPlatform().toString(),
                         purchaseModel.getGame().getPrice())),
                 List.of(new UserDtoResponse(purchaseModel.getUser().getId(),
-                        purchaseModel.getUser().getName(), purchaseModel.getUser().getEmail())));
+                        purchaseModel.getUser().getEmail(), purchaseModel.getUser().getName())));
     }
 }

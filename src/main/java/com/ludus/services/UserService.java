@@ -53,7 +53,7 @@ public class UserService {
         Pageable pageable = PageRequest.of(pageIndex, 10);
         Page<UserModel> userPage;
 
-        userPage = this.userRepository.findAll(name, pageable);
+        userPage = this.userRepository.findAllActiveUsersWithNameFilter(name, pageable);
 
 
         List<UserDtoResponse> userDTOs =
