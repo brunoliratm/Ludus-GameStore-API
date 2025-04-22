@@ -22,6 +22,5 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
             WHERE (:name IS NULL OR LOWER(CAST(u.name AS string)) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
             AND u.active = true
             """)
-    Page<UserModel> findAll(@Param("name")String name, Pageable pageable);
-
+    Page<UserModel> findAllActiveUsersWithNameFilter(@Param("name") String name, Pageable pageable);
 }
