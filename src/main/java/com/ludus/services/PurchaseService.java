@@ -46,10 +46,8 @@ public class PurchaseService {
     @Autowired
     private UtilHelper utilHelper;
 
-    public ApiDtoResponse<PurchaseDtoResponse> getAllPurchases(
-        int page, 
-        Long gameId,
-        String paymentMethod) {
+    public ApiDtoResponse<PurchaseDtoResponse> getAllPurchases(int page, Long gameId,
+            String paymentMethod) {
         if (page < 1) {
             throw new InvalidPageException("Page number must be greater than 0");
         }
@@ -62,26 +60,18 @@ public class PurchaseService {
         Pageable pageable = PageRequest.of(pageIndex, 10);
 
         Page<PurchaseModel> purchasePage;
-        
+
         PaymentMethod paymentMethodEnum = null;
         if (paymentMethod != null) {
             try {
                 paymentMethodEnum = PaymentMethod.valueOf(paymentMethod.toUpperCase().trim());
             } catch (IllegalArgumentException e) {
-                throw new NotFoundException(
-                    messageSource.getMessage("purchase.invalid.payment.method", null, Locale.getDefault()));
+                throw new NotFoundException(messageSource
+                        .getMessage("purchase.invalid.payment.method", null, Locale.getDefault()));
             }
         }
 
-        if (gameId != null && paymentMethodEnum != null) {
-            purchasePage = purchaseRepository.findByGameIdAndPaymentMethod(gameId, paymentMethodEnum, pageable);
-        } else if (gameId != null) {
-            purchasePage = purchaseRepository.findByGameId(gameId, pageable);
-        } else if (paymentMethodEnum != null) {
-            purchasePage = purchaseRepository.findByPaymentMethod(paymentMethodEnum, pageable);
-        } else {
-            purchasePage = purchaseRepository.findAll(pageable);
-        }
+        purchasePage = purchaseRepository.findAll(gameId, paymentMethodEnum, pageable);
 
         List<PurchaseDtoResponse> purchaseDTOs = purchasePage.getContent().stream()
                 .map(this::convertToDTO).collect(Collectors.toList());
@@ -109,9 +99,18 @@ public class PurchaseService {
                 .getMessage("user.not.found", new Object[] {userId}, Locale.getDefault())));
 
         try {
-            return purchaseRepository.findAll().stream()
+            List<PurchaseDtoResponse> userPurchases = purchaseRepository.findAll().stream()
                     .filter(purchase -> purchase.getUser().getId().equals(userId))
                     .map(this::convertToDTO).collect(Collectors.toList());
+            
+            if (userPurchases.isEmpty()) {
+                throw new NotFoundException(messageSource
+                        .getMessage("purchase.not.found", new Object[] {"usuário " + userId}, Locale.getDefault()));
+            }
+            
+            return userPurchases;
+        } catch (NotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new RetrievalException(
                     messageSource.getMessage("retrieval.error", null, Locale.getDefault()));
@@ -146,32 +145,23 @@ public class PurchaseService {
                     PaymentMethod.valueOf(purchaseDTO.paymentMethod().toUpperCase().trim());
             purchaseModel.setPaymentMethod(paymentMethod);
         } catch (Exception e) {
-            throw new NotFoundException(messageSource
-                    .getMessage("purchase.invalid.payment.method", null, Locale.getDefault()));
+            throw new NotFoundException(messageSource.getMessage("purchase.invalid.payment.method",
+                    null, Locale.getDefault()));
         }
 
         purchaseRepository.save(purchaseModel);
     }
 
     private PurchaseDtoResponse convertToDTO(PurchaseModel purchaseModel) {
-        return new PurchaseDtoResponse(
-            purchaseModel.getId(), 
-            purchaseModel.getPurchaseDate(),
-            purchaseModel.getPrice(), 
-            purchaseModel.getPaymentMethod().toString(),
-            List.of(new GameDtoResponse(
-                purchaseModel.getGame().getId(),
-                purchaseModel.getGame().getName(),
-                purchaseModel.getGame().getGenre().toString(),
-                purchaseModel.getGame().getReleaseYear(),
-                purchaseModel.getGame().getPlatform().toString(),
-                purchaseModel.getGame().getPrice()
-                )),
-            List.of(new UserDtoResponse(
-                purchaseModel.getUser().getId(),
-                purchaseModel.getUser().getName(), 
-                purchaseModel.getUser().getEmail()
-                ))
-        );
+        return new PurchaseDtoResponse(purchaseModel.getId(), purchaseModel.getPurchaseDate(),
+                purchaseModel.getPrice(), purchaseModel.getPaymentMethod().toString(),
+                List.of(new GameDtoResponse(purchaseModel.getGame().getId(),
+                        purchaseModel.getGame().getName(),
+                        purchaseModel.getGame().getGenre().toString(),
+                        purchaseModel.getGame().getReleaseYear(),
+                        purchaseModel.getGame().getPlatform().toString(),
+                        purchaseModel.getGame().getPrice())),
+                List.of(new UserDtoResponse(purchaseModel.getUser().getId(),
+                        purchaseModel.getUser().getName(), purchaseModel.getUser().getEmail())));
     }
 }

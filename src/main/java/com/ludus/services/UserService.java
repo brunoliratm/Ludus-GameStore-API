@@ -37,7 +37,8 @@ public class UserService {
     private MessageSource messageSource;
     private UtilHelper utilHelper;
 
-    public UserService(UserRepository userRepository, MessageSource messageSource, UtilHelper utilHelper) {
+    public UserService(UserRepository userRepository, MessageSource messageSource,
+            UtilHelper utilHelper) {
         this.userRepository = userRepository;
         this.messageSource = messageSource;
         this.utilHelper = utilHelper;
@@ -52,16 +53,12 @@ public class UserService {
         Pageable pageable = PageRequest.of(pageIndex, 10);
         Page<UserModel> userPage;
 
-        if (name != null) {
-            userPage = this.userRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable);
-        } else {
-            userPage = this.userRepository.findByActiveTrue(pageable);
-        }
+        userPage = this.userRepository.findAll(name, pageable);
 
-        List<UserDtoResponse> userDTOs = userPage.getContent().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());  
-                    
+
+        List<UserDtoResponse> userDTOs =
+                userPage.getContent().stream().map(this::convertToDTO).collect(Collectors.toList());
+
         InfoDtoResponse info = this.utilHelper.buildPageableInfoDto(userPage, "/users");
         return new ApiDtoResponse<>(info, userDTOs);
     }
@@ -71,12 +68,12 @@ public class UserService {
             throw new InvalidIdException();
         }
         UserModel userModel = this.userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(
-                        this.messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault())));
+                .orElseThrow(() -> new NotFoundException(this.messageSource
+                        .getMessage("user.not.found", new Object[] {id}, Locale.getDefault())));
 
         if (userModel.isActive() == false) {
-            throw new NotFoundException(
-                    this.messageSource.getMessage("user.not.found", new Object[]{id}, Locale.getDefault()));
+            throw new NotFoundException(this.messageSource.getMessage("user.not.found",
+                    new Object[] {id}, Locale.getDefault()));
         }
         return convertToDTO(userModel);
     }
@@ -93,7 +90,8 @@ public class UserService {
             userModel.setRole(UserRole.USER);
             this.userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException(messageSource.getMessage("user.creation.error", null, Locale.getDefault()));
+            throw new RetrievalException(
+                    messageSource.getMessage("user.creation.error", null, Locale.getDefault()));
         }
     }
 
@@ -102,8 +100,8 @@ public class UserService {
             throw new InvalidIdException();
 
         UserModel userModel = this.userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found", 
-                        new Object[]{id}, Locale.getDefault())));
+                .orElseThrow(() -> new NotFoundException(messageSource.getMessage("user.not.found",
+                        new Object[] {id}, Locale.getDefault())));
 
         validatePatchFields(userDTO, bindingResult, id);
 
@@ -120,7 +118,8 @@ public class UserService {
             }
             this.userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException(this.messageSource.getMessage("user.update.error", null, Locale.getDefault()));
+            throw new RetrievalException(
+                    this.messageSource.getMessage("user.update.error", null, Locale.getDefault()));
         }
     }
 
@@ -129,14 +128,15 @@ public class UserService {
             throw new InvalidIdException();
 
         UserModel userModel = this.userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(this.messageSource.getMessage("user.not.found", 
-                        new Object[]{id}, Locale.getDefault())));
+                .orElseThrow(() -> new NotFoundException(this.messageSource
+                        .getMessage("user.not.found", new Object[] {id}, Locale.getDefault())));
 
         try {
             userModel.setActive(false);
             this.userRepository.save(userModel);
         } catch (Exception e) {
-            throw new RetrievalException(this.messageSource.getMessage("user.deletion.error", null, Locale.getDefault()));
+            throw new RetrievalException(this.messageSource.getMessage("user.deletion.error", null,
+                    Locale.getDefault()));
         }
     }
 
@@ -149,8 +149,10 @@ public class UserService {
         List<String> errors = new ArrayList<>();
 
         Optional<UserModel> findByEmail = this.userRepository.findByEmail(userDTO.email());
-        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
-            errors.add(this.messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
+        if (findByEmail.isPresent()
+                && (userId == null || !findByEmail.get().getId().equals(userId))) {
+            errors.add(this.messageSource.getMessage("email.already.exists", null,
+                    Locale.getDefault()));
         }
 
         if (bindingResult.hasErrors()) {
@@ -163,13 +165,16 @@ public class UserService {
         }
     }
 
-    public void validatePatchFields(UserPatchDtoRequest userDTO, BindingResult bindingResult, Long userId) {
+    public void validatePatchFields(UserPatchDtoRequest userDTO, BindingResult bindingResult,
+            Long userId) {
 
         List<String> errors = new ArrayList<>();
 
         Optional<UserModel> findByEmail = this.userRepository.findByEmail(userDTO.email());
-        if (findByEmail.isPresent() && (userId == null || !findByEmail.get().getId().equals(userId))) {
-            errors.add(this.messageSource.getMessage("email.already.exists", null, Locale.getDefault()));
+        if (findByEmail.isPresent()
+                && (userId == null || !findByEmail.get().getId().equals(userId))) {
+            errors.add(this.messageSource.getMessage("email.already.exists", null,
+                    Locale.getDefault()));
         }
 
         if (bindingResult.hasErrors()) {
@@ -183,13 +188,14 @@ public class UserService {
     }
 
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
-        if (this.userRepository.findUserByEmail(email) == null || !userRepository.findByEmail(email).get().isActive()){
+        if (this.userRepository.findUserByEmail(email) == null
+                || !userRepository.findByEmail(email).get().isActive()) {
             throw new NotFoundException("User not found");
         }
         return this.userRepository.findUserByEmail(email);
     }
 
-    public Optional<UserModel> findByEmail(String email){
+    public Optional<UserModel> findByEmail(String email) {
         return this.userRepository.findByEmail(email);
     }
 }

@@ -41,10 +41,7 @@ public class GameService {
   @Autowired
   private UtilHelper utilHelper;
 
-  public ApiDtoResponse<GameDtoResponse> getAllGames(
-      int page,
-      String genre,
-      String name) {
+  public ApiDtoResponse<GameDtoResponse> getAllGames(int page, String genre, String name) {
     if (page < 1) {
       throw new InvalidPageException("Page number must be greater than 0");
     }
@@ -64,15 +61,7 @@ public class GameService {
       }
     }
 
-    if (genre != null && name != null) {
-      gamePage = gameRepository.findByGenreAndName(genreEnum, name, pageable);
-    } else if (genre != null) {
-      gamePage = gameRepository.findByGenre(genreEnum, pageable);
-    } else if (name != null) {
-      gamePage = gameRepository.findByName(name, pageable);
-    } else {
-      gamePage = gameRepository.findAll(pageable);
-    }
+    gamePage = gameRepository.findAll(genreEnum, name, pageable);
 
     List<GameDtoResponse> gameDTOs =
         gamePage.getContent().stream().map(this::convertToDTO).collect(Collectors.toList());
@@ -113,7 +102,7 @@ public class GameService {
     validatePatchFields(gameDTO, bindingResult);
 
     GameModel gameModel = gameRepository.findById(id).orElseThrow(() -> new NotFoundException(
-          messageSource.getMessage("game.not.found", new Object[] {id}, Locale.getDefault())));
+        messageSource.getMessage("game.not.found", new Object[] {id}, Locale.getDefault())));
     if (gameDTO.name() != null) {
       gameModel.setName(gameDTO.name());
     }
@@ -167,9 +156,9 @@ public class GameService {
   }
 
   private GameDtoResponse convertToDTO(GameModel gameModel) {
-    return new GameDtoResponse(gameModel.getId(),gameModel.getName(), gameModel.getGenre().toString(),
-        gameModel.getReleaseYear(), gameModel.getPlatform().toString(),
-        gameModel.getPrice());
+    return new GameDtoResponse(gameModel.getId(), gameModel.getName(),
+        gameModel.getGenre().toString(), gameModel.getReleaseYear(),
+        gameModel.getPlatform().toString(), gameModel.getPrice());
   }
 
   public void validateFields(GameDtoRequest gamedto, BindingResult result) {
@@ -200,6 +189,7 @@ public class GameService {
       throw new ValidationException(errors);
     }
   }
+
   public void validatePatchFields(GamePatchDtoRequest gamedto, BindingResult result) {
     List<String> errors = new ArrayList<>();
 
