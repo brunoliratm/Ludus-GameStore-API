@@ -10,8 +10,6 @@
   [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
   [![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D.svg)](http://localhost:8080/swagger-ui.html)
   
-  [![Typing SVG](https://readme-typing-svg.demolab.com/?font=Fira+Code&weight=800&size=24&pause=1000&color=A0153E&center=true&lines=Welcome+to+Ludus+GameStore!;)](https://git.io/typing-svg)
-  
   <h3>A comprehensive RESTful API for managing a modern gaming store platform with secure user authentication, robust game catalog, and seamless purchase processing.</h3>
 </div>
 
