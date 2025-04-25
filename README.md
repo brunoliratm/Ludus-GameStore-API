@@ -140,10 +140,10 @@ docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ludus-gamestore-api
 | Method | Endpoint | Description | Authentication Required |
 |--------|----------|-------------|------------------------|
 | GET | `/api/v1/users` | List all users with optional name filtering | Yes (ADMIN) |
-| GET | `/api/v1/users/{id}` | Get user profile by ID | Yes |
+| GET | `/api/v1/users/{id}` | Get user profile by ID | Yes (ADMIN) |
 | POST | `/api/v1/users` | Create a new user | Yes (ADMIN) |
-| PUT | `/api/v1/users/{id}` | Update user information | Yes |
-| DELETE | `/api/v1/users/{id}` | Delete user account (soft delete) | Yes |
+| PUT | `/api/v1/users/{id}` | Update user information | Yes (ADMIN) |
+| DELETE | `/api/v1/users/{id}` | Delete user account (soft delete) | Yes |(ADMIN) 
 
 ### Authentication API
 
@@ -157,9 +157,9 @@ docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ludus-gamestore-api
 | Method | Endpoint | Description | Authentication Required |
 |--------|----------|-------------|------------------------|
 | GET | `/api/v1/purchases` | List all purchases with optional filtering | Yes (ADMIN) |
-| GET | `/api/v1/purchases/{id}` | Get purchase details by ID | Yes |
-| POST | `/api/v1/purchases` | Create a new purchase | Yes |
-| GET | `/api/v1/purchases/user/{userId}` | Get purchases by user ID | Yes |
+| GET | `/api/v1/purchases/{id}` | Get purchase details by ID | Yes (ADMIN) |
+| POST | `/api/v1/purchases` | Create a new purchase | Yes (ADMIN) |
+| GET | `/api/v1/purchases/user/{userId}` | Get purchases by user ID | Yes (ADMIN) |
 
 ## 🔐 Security Implementation
 
