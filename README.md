@@ -188,8 +188,6 @@ classDiagram
         +String email
         +String name
         +String password
-        +String resetPasswordCode
-        +LocalDateTime resetPasswordExpiration
         +UserRole role
         +Collection~GrantedAuthority~ getAuthorities()
         +String getPassword()

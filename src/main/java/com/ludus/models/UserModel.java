@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Data;
-import java.time.LocalDateTime;
 import java.util.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,12 +30,6 @@ public class UserModel implements UserDetails {
 
     @Column(nullable = false, length = 100)
     private String password;
-
-    @Column(name = "reset_password_code", length = 6)
-    private String resetPasswordCode;
-
-    @Column(name = "reset_password_expiration")
-    private LocalDateTime resetPasswordExpiration;
 
     private UserRole role;
 
