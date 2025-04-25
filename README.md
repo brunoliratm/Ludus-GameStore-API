@@ -143,7 +143,7 @@ docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ludus-gamestore-api
 | GET | `/api/v1/users/{id}` | Get user profile by ID | Yes (ADMIN) |
 | POST | `/api/v1/users` | Create a new user | Yes (ADMIN) |
 | PUT | `/api/v1/users/{id}` | Update user information | Yes (ADMIN) |
-| DELETE | `/api/v1/users/{id}` | Delete user account (soft delete) | Yes |(ADMIN) 
+| DELETE | `/api/v1/users/{id}` | Delete user account (soft delete) | Yes (ADMIN) |
 
 ### Authentication API
 
