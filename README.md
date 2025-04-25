@@ -77,7 +77,7 @@ Ludus Game Store API is a robust Spring Boot application that provides a complet
 - Java 21 or higher
 - Maven 3.6+ 
 - Your preferred IDE (IntelliJ IDEA, Eclipse, VS Code)
-- MySQL Server or compatible database
+- PostgreSQL Server or compatible database
 - Docker (optional, for containerized deployment)
 
 ### Installation
@@ -90,9 +90,10 @@ cd Ludus-GameStore-Api
 
 2. Configure your database settings in `application.properties`
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/ludus_db
+spring.datasource.url=jdbc:postgresql://localhost:5432/ludus_db
 spring.datasource.username=your_username
 spring.datasource.password=your_password
+spring.datasource.driver-class-name=org.postgresql.Driver
 ```
 
 3. Build the project:
@@ -115,48 +116,50 @@ mvn spring-boot:run
 docker build -t ludus-gamestore-api .
 ```
 
-2. Run the container:
+2. Run the container with basic configuration:
 ```bash
 docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ludus-gamestore-api
 ```
+
+3. Access the API at `http://localhost:8080/` and Swagger documentation at `http://localhost:8080/swagger-ui.html`
 
 ## 📊 API Endpoints
 
 ### Games API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/games` | List all games with optional filtering by genre and name |
-| GET | `/api/games/{id}` | Get game details by ID |
-| POST | `/api/games` | Create a new game |
-| PUT | `/api/games/{id}` | Update an existing game |
-| PATCH | `/api/games/{id}` | Partially update a game |
-| DELETE | `/api/games/{id}` | Delete a game |
+| Method | Endpoint | Description | Authentication Required |
+|--------|----------|-------------|------------------------|
+| GET | `/api/v1/games` | List all games with optional filtering by genre and name | No |
+| GET | `/api/v1/games/{id}` | Get game details by ID | No |
+| POST | `/api/v1/games` | Create a new game | Yes (ADMIN) |
+| PUT | `/api/v1/games/{id}` | Update an existing game | Yes (ADMIN) |
+| DELETE | `/api/v1/games/{id}` | Delete a game | Yes (ADMIN) |
 
 ### Users API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/users` | Register a new user |
-| GET | `/api/users/{id}` | Get user profile by ID |
-| PUT | `/api/users/{id}` | Update user information |
-| DELETE | `/api/users/{id}` | Delete user account |
+| Method | Endpoint | Description | Authentication Required |
+|--------|----------|-------------|------------------------|
+| GET | `/api/v1/users` | List all users with optional name filtering | Yes (ADMIN) |
+| GET | `/api/v1/users/{id}` | Get user profile by ID | Yes |
+| POST | `/api/v1/users` | Create a new user | Yes (ADMIN) |
+| PUT | `/api/v1/users/{id}` | Update user information | Yes |
+| DELETE | `/api/v1/users/{id}` | Delete user account (soft delete) | Yes |
 
 ### Authentication API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Authenticate user and get JWT token |
-| POST | `/api/auth/refresh` | Refresh authentication token |
+| Method | Endpoint | Description | Authentication Required |
+|--------|----------|-------------|------------------------|
+| POST | `/api/v1/auth/login` | Authenticate user and get JWT token | No |
+| POST | `/api/v1/auth/register` | Register a new user and generate JWT token | No |
 
 ### Purchases API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/purchases` | List all purchases with optional filtering by payment method |
-| GET | `/api/purchases/{id}` | Get purchase details by ID |
-| POST | `/api/purchases` | Create a new purchase |
-| GET | `/api/purchases/user/{userId}` | Get purchases by user ID |
+| Method | Endpoint | Description | Authentication Required |
+|--------|----------|-------------|------------------------|
+| GET | `/api/v1/purchases` | List all purchases with optional filtering | Yes (ADMIN) |
+| GET | `/api/v1/purchases/{id}` | Get purchase details by ID | Yes |
+| POST | `/api/v1/purchases` | Create a new purchase | Yes |
+| GET | `/api/v1/purchases/user/{userId}` | Get purchases by user ID | Yes |
 
 ## 🔐 Security Implementation
 
@@ -287,28 +290,42 @@ The application includes Docker support for easy deployment in any environment. 
 - Slim JRE-based runtime image in the second stage
 - Proper layer caching for faster builds
 - Exposes port 8080 for the application
+- Health check to verify application is running properly
 
 ### Environment Variables
 The application supports configuration through environment variables, which can be passed when running the Docker container. Spring Boot will automatically map these environment variables to application properties.
 
 Common environment variables you can configure:
 
-- `SPRING_DATASOURCE_URL`: JDBC URL for your database
+- `SPRING_DATASOURCE_URL`: Database URL
 - `SPRING_DATASOURCE_USERNAME`: Database username
 - `SPRING_DATASOURCE_PASSWORD`: Database password
+- `JWT_SECRET`: Secret key used for JWT token signing
+- `API_BASEURL`: Base URL for the API (defaults to http://localhost:8080/api/v1)
+- `ADMIN_DEFAULT_EMAIL`: Email for the default admin user (default: adminlgs@email.com)
+- `ADMIN_DEFAULT_PASSWORD`: Password for the default admin user (default: puzzle001@)
 - `SPRING_PROFILES_ACTIVE`: Set to your desired Spring profile (default, dev, prod)
 - `SERVER_PORT`: The port on which the application runs (default: 8080)
-- `JWT_SECRET`: Secret key used for JWT token signing
+
+When running in a Docker container, use `host.docker.internal` to connect to a database running on your host machine, for example:
+
+```bash
+ --add-host=host.docker.internal:host-gateway \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/ludus \
+```
 
 Example of running with custom environment variables:
 
 ```bash
 docker run -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:mysql://db-host:3306/ludus_db \
-  -e SPRING_DATASOURCE_USERNAME=dbuser \
-  -e SPRING_DATASOURCE_PASSWORD=dbpassword \
-  -e SPRING_PROFILES_ACTIVE=prod \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://127.0.0.1:5432/ludus \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=password \
   -e JWT_SECRET=your_secure_jwt_secret \
+  -e ADMIN_DEFAULT_EMAIL=admin@ludus.com \
+  -e ADMIN_DEFAULT_PASSWORD=secure_admin_password \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e API_BASEURL=http://localhost:8080/api/v1 \
   ludus-gamestore-api
 ```
 
@@ -332,4 +349,3 @@ Please make sure your code follows the project's coding standards and includes a
 ## 📜 License
 
 This project is licensed under the MIT License.
-
