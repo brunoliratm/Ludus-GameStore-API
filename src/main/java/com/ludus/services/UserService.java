@@ -33,9 +33,9 @@ import com.ludus.utils.UtilHelper;
 @Service
 public class UserService {
 
-    private UserRepository userRepository;
-    private MessageSource messageSource;
-    private UtilHelper utilHelper;
+    private final UserRepository userRepository;
+    private final MessageSource messageSource;
+    private final UtilHelper utilHelper;
 
     public UserService(UserRepository userRepository, MessageSource messageSource,
             UtilHelper utilHelper) {
@@ -71,7 +71,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException(this.messageSource
                         .getMessage("user.not.found", new Object[] {id}, Locale.getDefault())));
 
-        if (userModel.isActive() == false) {
+        if (!userModel.isActive()) {
             throw new NotFoundException(this.messageSource.getMessage("user.not.found",
                     new Object[] {id}, Locale.getDefault()));
         }
@@ -157,7 +157,7 @@ public class UserService {
 
         if (bindingResult.hasErrors()) {
             errors.addAll(bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         if (!errors.isEmpty()) {
@@ -179,7 +179,7 @@ public class UserService {
 
         if (bindingResult.hasErrors()) {
             errors.addAll(bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         if (!errors.isEmpty()) {

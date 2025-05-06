@@ -22,8 +22,8 @@ public class AuthService implements UserDetailsService {
 
     @Value("${api.security.token.secret}")
     private String SECRET_KEY;
-    private UserService userService;
-    private TokenService tokenService;
+    private final UserService userService;
+    private final TokenService tokenService;
 
     AuthService(UserService userService, TokenService tokenService) {
         this.userService = userService;

@@ -26,8 +26,7 @@ public class TokenService {
         try {
             var userPassword = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
             var auth = authenticationManager.authenticate(userPassword);
-            var token = generateToken((UserModel) auth.getPrincipal());
-            return token.toString();
+            return generateToken((UserModel) auth.getPrincipal());
         } catch (Exception e) {
             throw new RuntimeException("Error while logging in", e.getCause());
         }
@@ -36,7 +35,7 @@ public class TokenService {
     private String generateToken(UserModel userModel) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
-            String token = JWT.create()
+            return JWT.create()
                     .withIssuer("api-v1-auth")
                     .withClaim("id", userModel.getId())
                     .withClaim("email", userModel.getEmail())
@@ -44,7 +43,6 @@ public class TokenService {
                     .withIssuedAt(genIssuedAtDate())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
-            return token;
         } catch (JWTCreationException exception) {
             throw new RuntimeException("Error while generating token", exception);
         }

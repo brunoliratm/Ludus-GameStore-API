@@ -77,18 +77,20 @@ public class UserServiceTest {
     void getAllUsers_ValidPageAndName_ReturnsApiDtoResponse() {
         Page<UserModel> userPage = new PageImpl<>(userList);
         InfoDtoResponse mockInfo = new InfoDtoResponse(2L, 1L, null, null);
-        
-        when(userRepository.findAll(any(), any(Pageable.class))).thenReturn(userPage);
+
+        when(userRepository.findAllActiveUsersWithNameFilter(anyString(), any(Pageable.class)))
+                .thenReturn(userPage);
         when(utilHelper.buildPageableInfoDto(any(), anyString())).thenReturn(mockInfo);
-        ApiDtoResponse<UserDtoResponse> result = userService.getAllUsers(1, null);
+
+        ApiDtoResponse<UserDtoResponse> result = userService.getAllUsers(1, "Test");
 
         assertNotNull(result);
         assertEquals(2, result.results().size());
         assertEquals(1, result.results().get(0).id());
         assertEquals("Test User", result.results().get(0).name());
         assertEquals(mockInfo, result.info());
-        
-        verify(userRepository).findAll(eq(null), any(Pageable.class));
+
+        verify(userRepository).findAllActiveUsersWithNameFilter(eq("Test"), any(Pageable.class));
         verify(utilHelper).buildPageableInfoDto(eq(userPage), eq("/users"));
     }
 
@@ -106,7 +108,7 @@ public class UserServiceTest {
         assertEquals(1L, result.id());
         assertEquals("Test User", result.name());
         assertEquals("test@example.com", result.email());
-        
+
         verify(userRepository).findById(1L);
     }
 
@@ -120,7 +122,8 @@ public class UserServiceTest {
     @Test
     void getUserById_NonExistingId_ThrowsNotFoundException() {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
-        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class))).thenReturn("User not found");
+        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class)))
+                .thenReturn("User not found");
 
         assertThrows(NotFoundException.class, () -> userService.getUserById(999L));
         verify(userRepository).findById(999L);
@@ -132,7 +135,8 @@ public class UserServiceTest {
         inactiveUser.setId(3L);
         inactiveUser.setActive(false);
         when(userRepository.findById(3L)).thenReturn(Optional.of(inactiveUser));
-        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class))).thenReturn("User not found");
+        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class)))
+                .thenReturn("User not found");
 
         assertThrows(NotFoundException.class, () -> userService.getUserById(3L));
         verify(userRepository).findById(3L);
@@ -157,7 +161,8 @@ public class UserServiceTest {
     @Test
     void deleteUser_NonExistingId_ThrowsNotFoundException() {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
-        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class))).thenReturn("User not found");
+        when(messageSource.getMessage(eq("user.not.found"), any(), any(Locale.class)))
+                .thenReturn("User not found");
 
         assertThrows(NotFoundException.class, () -> userService.deleteUser(999L));
         verify(userRepository).findById(999L);

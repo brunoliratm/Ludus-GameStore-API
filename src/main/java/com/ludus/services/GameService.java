@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,14 +31,15 @@ import com.ludus.utils.UtilHelper;
 @Service
 public class GameService {
 
-  @Autowired
-  private GameRepository gameRepository;
+  private final GameRepository gameRepository;
+  private final MessageSource messageSource;
+  private final UtilHelper utilHelper;
 
-  @Autowired
-  private MessageSource messageSource;
-
-  @Autowired
-  private UtilHelper utilHelper;
+  public GameService(GameRepository gameRepository, MessageSource messageSource, UtilHelper utilHelper) {
+    this.gameRepository = gameRepository;
+    this.messageSource = messageSource;
+    this.utilHelper = utilHelper;
+  }
 
   public ApiDtoResponse<GameDtoResponse> getAllGames(int page, String genre, String name) {
     if (page < 1) {
@@ -166,7 +166,7 @@ public class GameService {
 
     if (result.hasErrors()) {
       errors.addAll(result.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-          .collect(Collectors.toList()));
+          .toList());
     }
 
     if (gamedto.genre() != null) {
@@ -195,7 +195,7 @@ public class GameService {
 
     if (result.hasErrors()) {
       errors.addAll(result.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-          .collect(Collectors.toList()));
+          .toList());
     }
 
     if (gamedto.genre() != null) {

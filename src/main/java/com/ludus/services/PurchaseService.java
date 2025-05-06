@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,20 +30,21 @@ import com.ludus.utils.UtilHelper;
 
 @Service
 public class PurchaseService {
-    @Autowired
-    private MessageSource messageSource;
 
-    @Autowired
-    private PurchaseRepository purchaseRepository;
+    private final MessageSource messageSource;
+    private final PurchaseRepository purchaseRepository;
+    private final UserRepository userRepository;
+    private final GameRepository gameRepository;
+    private final UtilHelper utilHelper;
 
-    @Autowired
-    private UserRepository userRepository;
+    public PurchaseService(MessageSource messageSource, PurchaseRepository purchaseRepository, UserRepository userRepository, GameRepository gameRepository, UtilHelper utilHelper) {
+        this.messageSource = messageSource;
+        this.purchaseRepository = purchaseRepository;
+        this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
+        this.utilHelper = utilHelper;
 
-    @Autowired
-    private GameRepository gameRepository;
-
-    @Autowired
-    private UtilHelper utilHelper;
+    }
 
     public ApiDtoResponse<PurchaseDtoResponse> getAllPurchases(int page, Long gameId,
             String paymentMethod) {

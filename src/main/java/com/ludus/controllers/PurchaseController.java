@@ -1,7 +1,6 @@
 package com.ludus.controllers;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +25,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Purchases", description = "Endpoints for purchase management")
 public class PurchaseController {
 
-  @Autowired
-  private PurchaseService purchaseService;
+  private final PurchaseService purchaseService;
+
+  public PurchaseController(PurchaseService purchaseService) {
+      this.purchaseService = purchaseService;
+  }
 
   @Operation(
     summary = "Get All Purchases", 

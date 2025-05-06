@@ -1,4 +1,5 @@
 package com.ludus.controllers;
+
 import com.ludus.dtos.requests.UserDtoRequest;
 import com.ludus.dtos.requests.UserPatchDtoRequest;
 import com.ludus.dtos.responses.ApiDtoResponse;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -22,7 +22,6 @@ import jakarta.validation.Valid;
 @Tag(name = "Users", description = "Endpoints for user management")
 public class UserController {
 
-    @Autowired
     private final UserService userService;
 
     UserController(UserService userService) {
